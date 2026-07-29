@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>소스라이브 알림 기능 안내 - 고객사 안내용</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #153e9e;
+      --primary-soft: #eff6ff;
+      --mint: #12a594;
+      --mint-soft: #e9fbf8;
+      --yellow: #f8c230;
+      --yellow-soft: #fff9e6;
+      --red: #e5484d;
+      --red-soft: #fff1f2;
+      --purple: #7c3aed;
+      --purple-soft: #f5f0ff;
+      --gray-900: #111827;
+      --gray-700: #374151;
+      --gray-500: #6b7280;
+      --gray-200: #e5e7eb;
+      --gray-100: #f3f4f6;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", sans-serif;
+      background: #f7f9fc;
+      color: var(--gray-900);
+      line-height: 1.65;
+    }
+
+    .page {
+      max-width: 1040px;
+      margin: 40px auto;
+      padding: 0 24px 60px;
+    }
+
+    .hero {
+      background:
+        radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.22) 0, rgba(255, 255, 255, 0) 32%),
+        linear-gradient(135deg, #153e9e 0%, #2563eb 55%, #65a5ff 100%);
+      color: white;
+      border-radius: 30px;
+      padding: 46px 48px;
+      box-shadow: 0 18px 42px rgba(37, 99, 235, 0.28);
+    }
+
+    .hero .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 38px;
+      line-height: 1.25;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 18px 0 0;
+      max-width: 760px;
+      font-size: 17px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .section {
+      margin-top: 26px;
+      padding: 32px;
+      background: white;
+      border: 1px solid #e6eaf2;
+      border-radius: 26px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .num {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      background: var(--primary);
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 25px;
+      color: var(--primary-dark);
+      letter-spacing: -0.03em;
+    }
+
+    h3 {
+      margin: 26px 0 10px;
+      font-size: 19px;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    .lead {
+      font-size: 17px;
+      color: var(--gray-700);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .card {
+      border: 1px solid #dbe4f0;
+      border-radius: 22px;
+      padding: 24px;
+      background: white;
+    }
+
+    .card.blue {
+      background: var(--primary-soft);
+      border-color: #bfd7ff;
+    }
+
+    .card.yellow {
+      background: var(--yellow-soft);
+      border-color: #f4d067;
+    }
+
+    .card.mint {
+      background: var(--mint-soft);
+      border-color: #adeade;
+    }
+
+    .card.red {
+      background: var(--red-soft);
+      border-color: #ffc8cc;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--primary-dark);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      background: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 23px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    table {
+      width: 100%;
+      margin-top: 16px;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid #dbe4f0;
+      font-size: 15px;
+    }
+
+    th {
+      background: var(--primary-dark);
+      color: white;
+      text-align: left;
+      padding: 14px 16px;
+      font-weight: 900;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-top: 1px solid #e6eaf2;
+      vertical-align: top;
+      background: white;
+    }
+
+    tr:nth-child(even) td {
+      background: #fbfcff;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .step {
+      background: #f8fbff;
+      border: 1px solid #cfe0ff;
+      border-radius: 16px;
+      padding: 16px 10px;
+      text-align: center;
+      position: relative;
+      min-height: 112px;
+    }
+
+    .step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -12px;
+      top: 42%;
+      color: var(--primary);
+      font-weight: 900;
+      z-index: 1;
+    }
+
+    .step-icon {
+      font-size: 25px;
+      margin-bottom: 8px;
+    }
+
+    .step-title {
+      color: var(--primary-dark);
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .step-desc {
+      color: var(--gray-500);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .notice {
+      padding: 20px 22px;
+      border-radius: 18px;
+      margin-top: 18px;
+      background: var(--primary-soft);
+      border-left: 6px solid var(--primary);
+    }
+
+    .notice.warning {
+      background: var(--red-soft);
+      border-left-color: var(--red);
+    }
+
+    .notice.mint {
+      background: var(--mint-soft);
+      border-left-color: var(--mint);
+    }
+
+    .notice strong {
+      color: var(--primary-dark);
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .check {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: #fafcff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 13px 14px;
+    }
+
+    .check span:first-child {
+      color: var(--primary);
+      font-weight: 900;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 900;
+      margin: 4px 4px 0 0;
+    }
+
+    .pill.yellow {
+      background: var(--yellow-soft);
+      color: #8a5d00;
+    }
+
+    .pill.mint {
+      background: var(--mint-soft);
+      color: #087666;
+    }
+
+    .summary {
+      background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+      border-color: #bfd7ff;
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        padding: 32px 26px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .section {
+        padding: 24px 18px;
+      }
+
+      .cards,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .step:not(:last-child)::after {
+        content: "↓";
+        top: auto;
+        bottom: -16px;
+        right: 50%;
+        transform: translateX(50%);
+      }
+
+      table {
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="label">🔔 고객사 안내용</div>
+      <h1>소스라이브 알림 기능 안내</h1>
+      <p>
+        소스라이브에서는 라이브 방송 전 고객이 알림을 신청할 수 있도록 알림 기능을 제공합니다.
+        고객사의 운영 방식에 따라 브릿지알림 또는 카카오알림톡 방식을 선택할 수 있습니다.
+      </p>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span class="num">1</span>
+        <h2>알림 방식 요약</h2>
+      </div>
+
+      <p class="lead">
+        알림 기능은 고객사의 회원 시스템 연동 여부와 발송 방식에 따라 아래 2가지 방식 중 선택하여 사용할 수 있습니다.
+      </p>
+
+      <div class="cards">
+        <div class="card blue">
+          <div class="card-title"><span class="icon">🔗</span>브릿지알림</div>
+          <p>
+            고객사 알림 시스템과 연동하는 방식입니다.
+            고객이 알림 버튼을 클릭하면 해당 정보를 고객사 시스템으로 전달하고,
+            실제 알림 발송은 고객사 시스템에서 처리합니다.
+          </p>
+          <span class="pill">회원 시스템 연동</span>
+          <span class="pill">앱푸시 가능</span>
+          <span class="pill">고객사 직접 발송</span>
+        </div>
+
+        <div class="card yellow">
+          <div class="card-title"><span class="icon">💬</span>카카오알림톡</div>
+          <p>
+            소스라이브에서 비회원 대상 알림 발송을 대행하는 방식입니다.
+            고객사의 카카오 채널 정보를 받아 발송 연동 후 알림톡을 발송합니다.
+          </p>
+          <span class="pill yellow">비회원 방식</span>
+          <span class="pill yellow">소스라이브 대행</span>
+          <span class="pill yellow">정보성 메시지</span>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>브릿지알림</th>
+            <th>카카오알림톡</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>기본 방식</td>
+            <td>고객사 알림 시스템과 연동</td>
+            <td>소스라이브에서 알림 발송 대행</td>
+          </tr>
+          <tr>
+            <td>주요 대상</td>
+            <td>고객사 회원 / 고객사 시스템 이용 고객</td>
+            <td>비회원</td>
+          </tr>
+          <tr>
+            <td>실제 발송 주체</td>
+            <td>고객사</td>
+            <td>소스라이브</td>
+          </tr>
+          <tr>
+            <td>노출 가능 위치</td>
+            <td>쇼룸, 개별 예고 편성표</td>
+            <td>개별 예고 편성표</td>
+          </tr>
+          <tr>
+            <td>앱푸시 연동</td>
+            <td>가능</td>
+            <td>불가</td>
+          </tr>
+          <tr>
+            <td>광고성 메시지</td>
+            <td>고객사 직접 발송 시 가능</td>
+            <td>불가</td>
+          </tr>
+          <tr>
+            <td>추가 준비</td>
+            <td>고객사 시스템 연동 필요</td>
+            <td>카카오 채널 정보 제공 필요</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span class="num">2</span>
+        <h2>브릿지알림</h2>
+      </div>
+
+      <h3>2-1. 브릿지알림이란?</h3>
+      <p>
+        브릿지알림은 소스라이브 알림 버튼을 고객사의 알림 시스템과 연결하는 방식입니다.
+        고객이 소스라이브 화면에서 알림 버튼을 클릭하면, 소스라이브는 해당 클릭 정보를 고객사 시스템으로 전달합니다.
+      </p>
+      <p>
+        이후 고객사 시스템에서 로그인 여부, 회원 여부, 알림 수신 가능 여부 등을 확인한 뒤 소스라이브로 결과를 전달합니다.
+        소스라이브는 전달받은 결과를 기준으로 알림 신청 UI를 변경합니다.
+      </p>
+
+      <h3>2-2. 동작 흐름</h3>
+      <div class="flow">
+        <div class="step">
+          <div class="step-icon">👆</div>
+          <div class="step-title">알림 버튼 클릭</div>
+          <div class="step-desc">고객 액션</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">🔗</div>
+          <div class="step-title">정보 전달</div>
+          <div class="step-desc">소스라이브 → 고객사</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">👤</div>
+          <div class="step-title">로그인 확인</div>
+          <div class="step-desc">고객사 시스템</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">↩️</div>
+          <div class="step-title">결과 전달</div>
+          <div class="step-desc">고객사 → 소스라이브</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">✅</div>
+          <div class="step-title">UI 변경</div>
+          <div class="step-desc">알림 신청 상태 반영</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">📣</div>
+          <div class="step-title">알림 발송</div>
+          <div class="step-desc">고객사 시스템 처리</div>
+        </div>
+      </div>
+
+      <h3>2-3. 사용할 수 있는 위치</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>위치</th>
+            <th>사용 가능 여부</th>
+            <th>참고사항</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>쇼룸</td>
+            <td>가능</td>
+            <td>쇼룸 내 알림 버튼 노출 가능</td>
+          </tr>
+          <tr>
+            <td>개별 예고 편성표</td>
+            <td>가능</td>
+            <td>사전 페이지 알림 버튼 연동 가능</td>
+          </tr>
+          <tr>
+            <td>쇼룸 + 개별 예고 편성표 모두 사용</td>
+            <td>가능</td>
+            <td>각각 별도 연동 필요</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="notice">
+        <strong>확인 필요</strong><br />
+        쇼룸과 개별 예고 편성표는 각각 별도 연동 작업이 필요합니다.
+        두 위치 모두 알림 기능을 사용하려는 경우, 각 영역별 연동 범위를 사전에 확인해야 합니다.
+      </div>
+
+      <h3>2-4. 개별 예고 편성표 브릿지알림 주의사항</h3>
+      <p>
+        개별 예고 편성표에서 브릿지알림을 사용하는 경우, 고객사 알림 시스템과의 연결이 필요합니다.
+        또한 개별 예고 편성표는 방송 시작 후 플레이어 페이지로 전환되는 구조이므로,
+        플레이어 적용 방식에 대한 확인이 필요합니다.
+      </p>
+
+      <div class="notice warning">
+        고객사 서비스 내에서 플레이어를 사용하는 경우 <strong>iframe 방식 적용</strong>이 필요할 수 있습니다.
+      </div>
+
+      <h3>2-5. 비회원 대상 직접 발송을 원하는 경우</h3>
+      <p>
+        브릿지알림을 사용하면서 비회원 대상으로 고객사가 직접 알림을 발송하려면,
+        고객사 측에서 이름, 연락처 등을 입력받는 화면을 직접 구성해야 합니다.
+      </p>
+      <p>
+        이 경우 고객사에서 알림 신청 정보를 저장하고, 자체 발송 시스템을 통해 메시지를 발송하게 됩니다.
+      </p>
+
+      <div class="cards">
+        <div class="card mint">
+          <div class="card-title"><span class="icon">📝</span>고객사 준비 필요 항목</div>
+          <ul>
+            <li>이름 / 연락처 입력 화면</li>
+            <li>개인정보 수집 및 동의 처리</li>
+            <li>알림 신청 정보 저장</li>
+            <li>발송 메시지 템플릿</li>
+            <li>SMS / LMS / MMS / 카카오알림톡 등 발송 시스템</li>
+          </ul>
+        </div>
+
+        <div class="card red">
+          <div class="card-title"><span class="icon">⚠️</span>운영 주의사항</div>
+          <p>
+            비회원 방식은 쿠키 삭제 시 알림 신청 상태 정보가 유지되지 않을 수 있습니다.
+            안정적인 운영을 위해서는 회원 기반 알림 신청 방식을 권장합니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span class="num">3</span>
+        <h2>카카오알림톡</h2>
+      </div>
+
+      <h3>3-1. 카카오알림톡이란?</h3>
+      <p>
+        카카오알림톡은 소스라이브에서 비회원 대상 알림 발송을 대행하는 방식입니다.
+        고객사가 카카오 채널 정보를 제공하면, 소스라이브에서 발송 연동을 진행하고 알림톡을 발송합니다.
+      </p>
+
+      <h3>3-2. 사용 가능 위치</h3>
+      <p>
+        카카오알림톡 방식은 <strong>개별 예고 편성표</strong>에서 사용할 수 있습니다.
+        쇼룸에서는 카카오알림톡 대행 방식이 직접 적용되지 않으며,
+        쇼룸 알림이 필요한 경우 브릿지알림 방식으로 별도 연동이 필요합니다.
+      </p>
+
+      <h3>3-3. 주요 특징</h3>
+      <div class="checklist">
+        <div class="check"><span>✓</span><div>개별 예고 편성표에 노출 가능</div></div>
+        <div class="check"><span>✓</span><div>비회원 대상 알림 신청 가능</div></div>
+        <div class="check"><span>✓</span><div>소스라이브에서 발송 대행</div></div>
+        <div class="check"><span>✓</span><div>고객사 카카오 채널 정보 필요</div></div>
+        <div class="check"><span>✓</span><div>소스라이브 템플릿 기준으로 발송</div></div>
+        <div class="check"><span>✓</span><div>카카오알림톡 외 MMS / LMS / SMS 발송 가능</div></div>
+      </div>
+
+      <h3>3-4. 주의사항</h3>
+      <div class="notice warning">
+        <strong>정보성 메시지만 발송 가능</strong><br />
+        소스라이브에서 대행하는 카카오알림톡은 정보성 메시지만 발송 가능합니다.
+        할인, 구매 유도, 이벤트 참여 독려 등 광고성 내용이 포함된 메시지는 대행 발송이 어렵습니다.
+      </div>
+
+      <p>
+        광고성 메시지를 발송하고자 하는 경우에는 고객사에서 직접 발송 시스템을 운영해야 합니다.
+        이 경우 브릿지알림 방식으로 고객사 시스템과 연동하여 발송하는 형태로 진행할 수 있습니다.
+      </p>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span class="num">4</span>
+        <h2>앱푸시 사용을 원하는 경우</h2>
+      </div>
+
+      <p>
+        고객사 앱푸시를 사용하려는 경우에는 <strong>브릿지알림 방식</strong>으로 연동해야 합니다.
+        소스라이브에서 앱푸시 발송을 대행하지는 않습니다.
+      </p>
+
+      <div class="notice mint">
+        고객이 소스라이브 화면에서 알림 버튼을 클릭하면 해당 정보를 고객사 시스템으로 전달하고,
+        고객사 앱푸시 시스템에서 실제 푸시 발송을 처리하는 구조입니다.
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span class="num">5</span>
+        <h2>어떤 방식을 선택하면 좋을까요?</h2>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>고객사 니즈</th>
+            <th>권장 방식</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>비회원에게 간단한 방송 알림을 보내고 싶어요</td>
+            <td>카카오알림톡</td>
+          </tr>
+          <tr>
+            <td>소스라이브에서 알림 발송까지 대행해주면 좋겠어요</td>
+            <td>카카오알림톡</td>
+          </tr>
+          <tr>
+            <td>고객사 회원 시스템과 연결하고 싶어요</td>
+            <td>브릿지알림</td>
+          </tr>
+          <tr>
+            <td>고객사 앱푸시로 알림을 보내고 싶어요</td>
+            <td>브릿지알림</td>
+          </tr>
+          <tr>
+            <td>광고성 메시지도 발송하고 싶어요</td>
+            <td>브릿지알림</td>
+          </tr>
+          <tr>
+            <td>쇼룸에서도 알림 버튼을 사용하고 싶어요</td>
+            <td>브릿지알림</td>
+          </tr>
+          <tr>
+            <td>개별 예고 편성표에서 알림 버튼을 사용하고 싶어요</td>
+            <td>브릿지알림 또는 카카오알림톡</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span class="num">6</span>
+        <h2>준비 필요 사항</h2>
+      </div>
+
+      <div class="cards">
+        <div class="card blue">
+          <div class="card-title"><span class="icon">🔗</span>브릿지알림 사용 시</div>
+          <ul>
+            <li>고객사 로그인 / 회원 시스템 연동 가능 여부</li>
+            <li>알림 버튼 클릭 값 수신 가능 여부</li>
+            <li>소스라이브로 콜백 전달 가능 여부</li>
+            <li>실제 알림 발송 시스템 보유 여부</li>
+            <li>앱푸시, SMS, LMS, MMS, 카카오알림톡 등 발송 방식</li>
+            <li>개별 예고 편성표 사용 시 iframe 적용 가능 여부</li>
+          </ul>
+        </div>
+
+        <div class="card yellow">
+          <div class="card-title"><span class="icon">💬</span>카카오알림톡 사용 시</div>
+          <ul>
+            <li>고객사 카카오 채널 정보</li>
+            <li>알림톡 발송에 필요한 기본 정보</li>
+            <li>알림 신청 시 노출될 이용약관 URL</li>
+            <li>발송 문구 검토</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="notice">
+        카카오알림톡은 정보성 메시지만 발송 가능하므로, 문구 내 광고성 표현이 포함되지 않도록 사전 확인이 필요합니다.
+      </div>
+    </section>
+
+    <section class="section summary">
+      <div class="section-title">
+        <span class="num">✓</span>
+        <h2>최종 정리</h2>
+      </div>
+
+      <p>
+        소스라이브 알림 기능은 고객사의 운영 방식에 따라 <strong>브릿지알림</strong> 또는
+        <strong>카카오알림톡</strong> 방식으로 제공됩니다.
+      </p>
+      <p>
+        브릿지알림은 고객사 알림 시스템과 연동하는 방식으로,
+        회원 기반 알림, 앱푸시, 광고성 메시지 발송 등 고객사 자체 운영이 필요한 경우에 적합합니다.
+      </p>
+      <p>
+        카카오알림톡은 소스라이브에서 비회원 대상 알림 발송을 대행하는 방식으로,
+        개별 예고 편성표에서 간단한 정보성 알림을 발송하고자 할 때 적합합니다.
+      </p>
+      <p>
+        쇼룸과 개별 예고 편성표는 각각 별도 연동이 필요할 수 있으므로,
+        사용하고자 하는 위치와 발송 방식을 사전에 확인한 뒤 진행해야 합니다.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
