@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>카페24 Web SDK 테스트 정리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#e9ecf2; --paper:#ffffff; --ink:#1b2130; --sub:#5b6478; --line:#e3e7ef; --soft:#f5f7fb;
+    --accent:#3b5bdb; --accent-soft:#edf1ff;
+    --ok:#2b8a3e; --ok-soft:#e9f7ec;
+    --plan:#1c7ed6; --plan-soft:#e7f3ff;
+    --todo:#d9480f; --todo-soft:#fff1e6;
+    --bug:#c92a2a; --bug-soft:#ffecec;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",-apple-system,"Malgun Gothic",sans-serif;word-break:keep-all}
+  #viewport{position:fixed;inset:0 0 56px 0;display:flex;align-items:center;justify-content:center}
+  #deck{width:1280px;height:720px;position:relative;flex:none;transform-origin:center center}
+  .slide{position:absolute;inset:0;background:var(--paper);border-radius:14px;box-shadow:0 10px 40px rgba(20,30,60,.12);padding:52px 64px 44px;display:none;flex-direction:column}
+  .slide.active{display:flex}
+  .eyebrow{font-size:14px;font-weight:700;color:var(--accent);letter-spacing:.04em;margin-bottom:8px}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+  .lead{font-size:15px;color:var(--sub);margin-bottom:26px}
+  .pageno{position:absolute;right:40px;bottom:24px;font-size:12px;color:#9aa3b5}
+  .body{flex:1;min-height:0}
+
+  .tag{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+  .t-ok{background:var(--ok-soft);color:var(--ok)}
+  .t-plan{background:var(--plan-soft);color:var(--plan)}
+  .t-todo{background:var(--todo-soft);color:var(--todo)}
+  .t-bug{background:var(--bug-soft);color:var(--bug)}
+  code{font-family:Consolas,monospace;font-size:12.5px;background:var(--soft);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:#364fc7}
+
+  /* cover */
+  .cover{justify-content:center;background:linear-gradient(135deg,#25316b 0%,#3b5bdb 100%);color:#fff}
+  .cover .eyebrow{color:#bac8ff}
+  .cover h1{font-size:46px;margin:6px 0 16px}
+  .cover p{font-size:18px;color:#dbe4ff}
+  .cover .meta{margin-top:60px;font-size:14px;color:#bac8ff}
+  .cover .pageno{color:#91a7ff}
+
+  /* overview */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
+  .stat{border-radius:12px;padding:20px 22px;border:1px solid var(--line)}
+  .stat b{display:block;font-size:38px;font-weight:800;line-height:1.1}
+  .stat span{font-size:13.5px;color:var(--sub)}
+  .toc{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .toc div{background:var(--soft);border-radius:12px;padding:18px 20px}
+  .toc h3{font-size:16px;margin-bottom:8px}
+  .toc p{font-size:13.5px;color:var(--sub);line-height:1.6}
+
+  /* flow diagram */
+  .lane{display:flex;align-items:stretch;gap:0;margin-bottom:14px}
+  .lane-head{width:150px;flex:none;border-radius:12px;padding:14px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+  .lane-head b{font-size:17px}
+  .lane-head span{font-size:12px;opacity:.85}
+  .node{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff;font-size:13.5px;line-height:1.5;display:flex;flex-direction:column;justify-content:center}
+  .node small{display:block;font-size:11.5px;color:var(--sub);margin-bottom:3px;font-weight:700}
+  .arrow{width:34px;flex:none;display:flex;align-items:center;justify-content:center;color:#9aa3b5;font-size:20px}
+  .c1 .lane-head{background:var(--accent);color:#fff}
+  .c1 .node{border-color:#c5d0fa}
+  .c2 .lane-head{background:#495057;color:#fff}
+  .sub-branch{margin:-4px 0 14px 150px;display:flex;align-items:center;gap:10px}
+  .sub-branch .elbow{width:40px;height:30px;border-left:2px dashed #adb5bd;border-bottom:2px dashed #adb5bd;border-radius:0 0 0 8px;margin-top:-26px;margin-left:20px;flex:none}
+  .sub-branch .node{border-style:dashed;border-color:#f5a97f;background:#fffaf5}
+  .note{display:flex;gap:14px}
+  .note > div{flex:1;background:var(--soft);border-radius:10px;padding:13px 16px;font-size:13px;line-height:1.6;color:#343a40}
+  .note b{color:var(--ink)}
+  .peek{position:relative;display:inline-block;margin-left:6px;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:1px 8px;border-radius:999px;text-decoration:none;cursor:zoom-in}
+  .peek img{display:none;position:absolute;right:0;bottom:calc(100% + 10px);max-height:470px;max-width:760px;width:auto;border-radius:10px;border:1px solid var(--line);background:#fff;box-shadow:0 14px 40px rgba(20,30,60,.25);z-index:10}
+  .peek:hover img,.peek:focus img{display:block}
+  .peek-s{position:static}
+  .peek-s img{right:auto;bottom:auto;left:250px;top:120px;max-height:540px;max-width:960px}
+  .peek-v{position:static}
+  .peek-v video{display:none;position:absolute;right:64px;top:110px;width:860px;border-radius:10px;border:1px solid var(--line);background:#000;box-shadow:0 14px 40px rgba(20,30,60,.25);z-index:10}
+  .peek-m video{right:auto;left:64px;top:40px;width:auto;height:640px}
+  .peek-v:hover video,.peek-v:focus video{display:block}
+
+  /* floating flow */
+  .fflow{display:flex;align-items:center;gap:0;margin:6px 0 26px}
+  .fflow .node{flex:none;width:170px;min-height:84px;text-align:center}
+  .fork{display:flex;flex-direction:column;gap:12px;flex:none;width:260px}
+  .fork .node{width:auto;min-height:0;text-align:left}
+  .fork .main{border-color:var(--ok);background:var(--ok-soft)}
+  .fork .opt{border-style:dashed}
+  .end{border-color:var(--accent)!important;background:var(--accent-soft)!important}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .compare > div{border-radius:12px;padding:16px 20px;border:1px solid var(--line)}
+  .compare h4{font-size:14px;margin-bottom:10px}
+  .compare ul{list-style:none;font-size:13.5px;line-height:1.9}
+  .compare li::before{content:"•";color:#adb5bd;margin-right:8px}
+  .before{background:#fafafa}
+  .before li{color:#868e96;text-decoration:line-through;text-decoration-color:#ced4da}
+  .after{background:var(--ok-soft);border-color:#b2e2bd!important}
+
+  /* share */
+  .share-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:22px;flex:1}
+  .chain{display:flex;flex-direction:column;gap:0}
+  .chain .node{flex:none}
+  .chain .down{text-align:center;color:#9aa3b5;font-size:16px;line-height:22px}
+  .rulebox{border-radius:12px;padding:16px 18px;margin-bottom:12px;font-size:13.5px;line-height:1.65}
+  .rulebox h4{font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:13.2px;line-height:1.55}
+  th{text-align:left;font-size:12px;color:var(--sub);font-weight:700;padding:8px 10px;border-bottom:2px solid var(--ink)}
+  td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  td.topic{font-weight:700;width:170px}
+  td.arrowc{width:26px;color:#adb5bd;text-align:center}
+  td.st{width:96px}
+  .issue{color:#495057}
+  .decide{color:var(--ink)}
+
+  /* pending list */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .card h4{font-size:14.5px;margin-bottom:5px;display:flex;gap:8px;align-items:center}
+  .card p,.card li{font-size:13px;color:#495057;line-height:1.6}
+  .card ul{padding-left:18px}
+  .card .now{margin-top:6px;font-size:12.5px;background:var(--soft);border-radius:7px;padding:7px 10px;color:#343a40}
+  .col-title{font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .os{display:inline-block;width:46px;font-weight:700;color:var(--ink)}
+
+  /* nav */
+  #nav{position:fixed;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;justify-content:center;gap:16px}
+  #nav button{border:0;background:#fff;color:var(--ink);width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer;box-shadow:0 2px 8px rgba(20,30,60,.12)}
+  #nav button:disabled{opacity:.35;cursor:default}
+  #dots{display:flex;gap:7px}
+  #dots i{width:8px;height:8px;border-radius:50%;background:#c3c9d6;cursor:pointer}
+  #dots i.on{background:var(--accent);width:22px;border-radius:5px}
+  #count{font-size:13px;color:var(--sub);min-width:48px;text-align:center}
+
+  @media print{
+    @page{size:1280px 720px;margin:0}
+    html,body{overflow:visible;height:auto;background:#fff}
+    #viewport{position:static;display:block}
+    #deck{transform:none!important;height:auto}
+    .slide{display:flex!important;position:relative;width:1280px;height:720px;border-radius:0;box-shadow:none;page-break-after:always}
+    #nav{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="deck">
+
+<!-- 1. 표지 -->
+<section class="slide cover">
+  <div class="eyebrow">개발 · PM팀 공유</div>
+  <h1>카페24 신규 가이드(Web SDK)<br>테스트 결과 정리</h1>
+  <p>정책 흐름 · 확인 완료 사항 · 추가 확인 필요 사항</p>
+  <div class="meta">2026.10.28 &nbsp;|&nbsp; ← → 키 또는 하단 버튼으로 이동</div>
+  <div class="pageno"></div>
+</section>
+
+<!-- 2. 요약 -->
+<section class="slide">
+  <div class="eyebrow">SUMMARY</div>
+  <h1>한눈에 보기</h1>
+  <p class="lead">테스트 중 소통하며 결정된 내용을 반영해 현재 기준으로 재분류했습니다.</p>
+  <div class="body">
+    <div class="stats">
+      <div class="stat" style="background:var(--ok-soft)"><b style="color:var(--ok)">8</b><span>확인 완료 · 방향 결정</span></div>
+      <div class="stat" style="background:var(--plan-soft)"><b style="color:var(--plan)">5</b><span>그중 결정됐지만 반영 대기</span></div>
+      <div class="stat" style="background:var(--todo-soft)"><b style="color:var(--todo)">5</b><span>정책·일정 추가 확인 필요</span></div>
+      <div class="stat" style="background:var(--bug-soft)"><b style="color:var(--bug)">7</b><span>오류 (수정·재현 확인 필요)</span></div>
+    </div>
+    <div class="toc">
+      <div><h3>① 정책 흐름</h3><p>설치 방식(쇼룸 모달 사용 여부)별 플레이어 노출,<br>공유 URL 정책, 플로팅 → 확대 흐름</p></div>
+      <div><h3>② 확인 완료</h3><p>어떤 문제였는지 → 최종적으로 어떻게 하기로 했는지,<br>반영 상태까지 함께 정리</p></div>
+      <div><h3>③ 추가 확인 필요</h3><p>아직 결정되지 않은 정책·가이드·일정과<br>테스트 중 발견된 오류 목록</p></div>
+    </div>
+  </div>
+  <div class="pageno"></div>
+</section>
+
+<!-- 3. 정책: 설치 방식별 -->
+<section class="slide">
+  <div class="eyebrow">① 정책 흐름 · 1 / 3</div>
+  <h1>쇼룸 모달 사용 여부에 따른 플레이어 노출 방식</h1>
+  <p class="lead">모달 on/off 자체가 핵심은 아님 — <b>브릿지 연결 방식</b>으로 가이드를 구성하고, 기존처럼 html 설치 방식도 제공</p>
+  <div class="body">
+    <div class="lane c1">
+      <div class="lane-head"><b>Case 1</b><span>쇼룸 모달 사용 O</span><span class="tag" style="background:#fff;color:var(--accent);align-self:flex-start">가이드 공개 · 기본</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><small>설치</small>쇼룸 스크립트 설치<br>(쇼룸 모달 방식)</div>
+      <div class="arrow">→</div>
+      <div class="node"><small>플레이어 노출</small>쇼룸 모달로 노출<br><b>홈·상품 플로팅 확대 시에도 쇼룸 모달</b></div>
+      <div class="arrow">→</div>
+      <div class="node" style="flex:1.35"><small>URL</small>쇼룸 주소 포함 URL<br><code>https://몰주소/showroom/index.html?ssBid=방송ID</code></div>
+    </div>
+
+    <div class="lane c2">
+      <div class="lane-head"><b>Case 2</b><span>쇼룸 모달 사용 X</span><span class="tag" style="background:#fff;color:#495057;align-self:flex-start">요청 시 개별 전달</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><small>설치</small>html 설치 방식으로<br>플레이어 설치 (기존 방식)</div>
+      <div class="arrow">→</div>
+      <div class="node"><small>플레이어 노출</small>쇼룸 모달과는 별개의 모달<br><b>배경 투명 모달로 디자인 변경</b> (쇼룸 모달과 유사)</div>
+      <div class="arrow">→</div>
+      <div class="node" style="flex:1.35"><small>URL</small>카페24 전용 라이브 URL<br><code>https://몰주소/saucelive/saucelive.html?broadcastId=방송ID</code></div>
+    </div>
+
+    <div class="sub-branch">
+      <div class="elbow"></div>
+      <div class="node" style="flex:none;width:820px;flex-direction:row;align-items:center;gap:12px">
+        <span class="tag t-todo">확인 필요</span>
+        <span><b>쇼룸은 사용 O + 모달은 X</b> → 쇼룸에서 플레이어 클릭 시 위 카페24 전용 라이브 URL(html 주소)로 이동하도록 <b>쇼룸 설치 html에 URL 브릿지 추가</b> + 가이드 준비 필요</span>
+      </div>
+    </div>
+
+    <div class="note">
+      <div><b>가이드 공개 범위</b><br>현재 가이드에는 Case 1(쇼룸 모달)만 공개. Case 2는 고객사가 요청하면 케이스별로 전달하는 방향으로 고민 중</div>
+      <div><b>Case 2 디자인을 바꾸는 이유</b><br>지금은 전체화면처럼 보여 사용자가 뒤로가기를 누르는데, 돌아갈 페이지가 없어 동작하지 않음</div>
+      <div><b>최종 목적</b> <a class="peek" href="https://mobidoo-csm.github.io/guide/shoplivemodal.png" target="_blank" rel="noopener">예시 보기<img src="https://mobidoo-csm.github.io/guide/shoplivemodal.png" alt="쇼룸 상단 플레이어 모달 예시"></a><br>쇼룸 상단 플레이어 모달. 이게 되어야 쇼룸 모달을 기본으로 밀 명분이 생김 → <b>목표 일정 확인 필요</b></div>
+    </div>
+  </div>
+  <div class="pageno"></div>
+</section>
+
+<!-- 4. 정책: 공유 -->
+<section class="slide">
+  <div class="eyebrow">① 정책 흐름 · 2 / 3</div>
+  <h1>플레이어 공유하기 URL 정책</h1>
+  <p class="lead">기본 정책은 현행 유지 — 쿼리스트링을 떼지 않고 <b>최초 라이브로 진입한 URL</b>을 그대로 공유 (html 설치 방식도 동일)</p>
+  <div class="body share-grid">
+    <div>
+      <div class="col-title">예시 · 방송 URL이 아닌 페이지 URL이 공유되는 경우</div>
+      <div class="chain">
+        <div class="node">상품 페이지 접속</div><div class="down">↓</div>
+        <div class="node">상품 플로팅 노출</div><div class="down">↓</div>
+        <div class="node">플로팅 확대 (쇼룸 모달)</div><div class="down">↓</div>
+        <div class="node">공유 버튼 클릭</div><div class="down">↓</div>
+        <div class="node end"><b>상품 페이지 주소가 공유됨</b> (홈 플로팅이면 메인 URL)</div>
+      </div>
+    </div>
+    <div>
+      <div class="rulebox" style="background:var(--ok-soft)">
+        <h4><span class="tag t-ok">결정</span>기본 정책</h4>
+        최초 진입 URL 유지. 그래서 공유 링크가 꼭 방송으로 가지 않고 상품 페이지·메인 URL이 될 수 있음
+      </div>
+      <div class="rulebox" style="background:var(--ok-soft)">
+        <h4><span class="tag t-ok">결정</span>고객사 커스텀</h4>
+        브릿지 처리로 고객사가 원하는 URL 지정 가능 → 고객사가 넣은 URL로 이동
+      </div>
+      <div class="rulebox" style="background:var(--todo-soft)">
+        <h4><span class="tag t-todo">확인 필요</span>방송 URL 고정 여부</h4>
+        작업량은 크지 않음. 공유 시 <b>방송 URL로 필수 이동</b>하게 할지, 고객사가 <b>선택 적용(optional)</b>하게 할지 가이드 구성에 따라 결정 필요
+      </div>
+      <div class="rulebox" style="background:var(--soft)">
+        <h4>최종 목표</h4>
+        모달·라이브 URL·공유 URL 처리를 고객사가 어드민에서 직접 설정
+      </div>
+    </div>
+  </div>
+  <div class="pageno"></div>
+</section>
+
+<!-- 5. 정책: 플로팅 -->
+<section class="slide">
+  <div class="eyebrow">① 정책 흐름 · 3 / 3</div>
+  <h1>플로팅 클릭 → 확대 흐름</h1>
+  <p class="lead">홈 플로팅 · 상품 플로팅 공통. 확대 시 전체화면이 아닌 <b>쇼룸 모달로 복귀</b>하고, URL은 최초 진입점을 그대로 유지</p>
+  <div class="body">
+    <div class="fflow">
+      <div class="node"><small>STEP 1</small>홈 / 상품 페이지에서<br>플로팅 노출</div>
+      <div class="arrow">→</div>
+      <div class="node"><small>STEP 2</small>플로팅 클릭</div>
+      <div class="arrow">→</div>
+      <div class="fork">
+        <div class="node main"><small style="color:var(--ok)">기본 정책 (변경)</small><b>일시정지 없이 계속 재생</b></div>
+        <div class="node opt"><small>옵션 · 요청 고객사만</small>일시정지 버전 제공<br>→ 확대해도 일시정지 상태 유지</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node"><small>STEP 3</small>플로팅 확대</div>
+      <div class="arrow">→</div>
+      <div class="node end"><small style="color:var(--accent)">결과</small><b>쇼룸 모달로 복귀</b><br>URL은 최초 진입점 유지</div>
+    </div>
+    <div class="compare">
+      <div class="before">
+        <h4 style="color:#868e96">기존 동작</h4>
+        <ul>
+          <li>플로팅 클릭 시 일시정지, 확대해도 일시정지 상태</li>
+          <li>홈 플로팅 확대 시 전체화면으로 노출</li>
+          <li>상품 플로팅 확대 시 쇼룸 모달이 아닌 화면으로 노출</li>
+        </ul>
+      </div>
+      <div class="after">
+        <h4 style="color:var(--ok)">변경 후 기본 정책</h4>
+        <ul>
+          <li>플로팅 클릭 시 재생 유지 (일시정지는 옵션 버전으로 제공)</li>
+          <li>홈 플로팅도 <b>쇼룸 모달형</b>으로 수정</li>
+          <li>홈·상품 모두 확대 시 쇼룸 모달로 복귀, URL 기본 정책은 그대로</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="pageno"></div>
+</section>
+
+<!-- 6. 확인 완료 1 -->
+<section class="slide">
+  <div class="eyebrow">② 확인 완료 · 1 / 2</div>
+  <h1>확인 완료 — 문제 → 결정 (플레이어 노출 · 플로팅)</h1>
+  <p class="lead">결정은 났지만 아직 반영 전인 항목은 <span class="tag t-plan">반영 예정</span>으로 표시</p>
+  <div class="body">
+    <table>
+      <thead><tr><th>항목</th><th>어떤 문제였나</th><th></th><th>어떻게 하기로 했나</th><th>상태</th></tr></thead>
+      <tbody>
+        <tr><td class="topic">플로팅 확대 시 화면</td><td class="issue">홈·상품 플로팅을 확대하면 전체화면으로 떠서 쇼룸 흐름과 단절됨</td><td class="arrowc">→</td><td class="decide">홈·상품 모두 확대 시 <b>쇼룸 모달로 복귀</b>. 홈 플로팅도 모달형으로 수정. URL 기본 정책(최초 진입점 유지)은 그대로</td><td class="st"><span class="tag t-plan">반영 예정</span></td></tr>
+        <tr><td class="topic">쇼룸 모달 미사용 시 플레이어</td><td class="issue">html 설치 방식 플레이어가 전체화면처럼 보여 사용자가 뒤로가기를 누르는데, 돌아갈 페이지가 없어 동작 안 함</td><td class="arrowc">→</td><td class="decide">쇼룸 모달은 아니지만 <b>배경 투명 모달</b>로 바꿔 쇼룸 모달과 비슷한 형태로 디자인 통일. 가이드엔 미공개, 요청 시 개별 전달</td><td class="st"><span class="tag t-plan">반영 예정</span></td></tr>
+        <tr><td class="topic">플로팅 클릭 시 일시정지</td><td class="issue">플로팅 클릭하면 일시정지되고, 확대해도 일시정지 상태로 남아 있음 — 맞는 정책인지 불분명</td><td class="arrowc">→</td><td class="decide">기본 정책을 <b>일시정지 안 함</b>으로 변경. 원하는 고객사엔 일시정지 버전 제공 (이 경우 확대 시에도 일시정지 유지)</td><td class="st"><span class="tag t-plan">반영 예정</span></td></tr>
+        <tr><td class="topic">가이드 구성 방향</td><td class="issue">모달 사용 여부에 따라 가이드를 어떻게 나눌지 불분명</td><td class="arrowc">→</td><td class="decide">모달 on/off가 아니라 <b>브릿지 연결 방식</b>으로 가이드 구성. 기존처럼 html 설치 방식도 제공</td><td class="st"><span class="tag t-ok">결정</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pageno"></div>
+</section>
+
+<!-- 7. 확인 완료 2 -->
+<section class="slide">
+  <div class="eyebrow">② 확인 완료 · 2 / 2</div>
+  <h1>확인 완료 — 문제 → 결정 (UI · 공유)</h1>
+  <p class="lead">UI 수정 2건은 반영 예정, 공유 정책은 현행 유지로 확정</p>
+  <div class="body">
+    <table>
+      <thead><tr><th>항목</th><th>어떤 문제였나</th><th></th><th>어떻게 하기로 했나</th><th>상태</th></tr></thead>
+      <tbody>
+        <tr><td class="topic">PC 1단 모달 여백<br><a class="peek peek-s" href="https://mobidoo-csm.github.io/guide/1dan.png" target="_blank" rel="noopener" style="margin:4px 0 0">예시 보기<img src="https://mobidoo-csm.github.io/guide/1dan.png" alt="PC 1단 모달 여백 예시"></a></td><td class="issue">PC 1단 모달일 때 양 옆 여백 때문에 UI가 예쁘지 않음</td><td class="arrowc">→</td><td class="decide">양 옆 여백 삭제, <b>깔끔하게 9:16</b>으로 노출</td><td class="st"><span class="tag t-plan">반영 예정</span></td></tr>
+        <tr><td class="topic">웹 접근성 파란 테두리</td><td class="issue">플레이어와 닫기(X) 버튼에 포커스 시 파란 테두리가 노출됨</td><td class="arrowc">→</td><td class="decide">테두리 노출 수정</td><td class="st"><span class="tag t-plan">반영 예정</span></td></tr>
+        <tr><td class="topic">공유 버튼 URL</td><td class="issue">공유 시 방송 URL이 아니라 최초 진입한 페이지(상품·메인) URL이 공유되는 케이스가 있음</td><td class="arrowc">→</td><td class="decide">기본 정책 <b>현행 유지</b> (쿼리스트링 제거 안 함, 최초 진입 URL 유지). 고객사는 브릿지로 커스텀 가능</td><td class="st"><span class="tag t-ok">결정</span></td></tr>
+        <tr><td class="topic">html 방식의 공유 정책</td><td class="issue">html 설치 방식을 쓸 때도 공유 정책이 같은지?</td><td class="arrowc">→</td><td class="decide"><b>동일</b>하게 적용</td><td class="st"><span class="tag t-ok">결정</span></td></tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:18px">
+      <div><span class="tag t-todo">남은 결정</span>&nbsp; 공유 URL을 <b>방송 URL로 필수 고정할지 / 고객사 optional로 둘지</b>는 가이드 구성에 따라 결정 필요 → 다음 장 ‘추가 확인 필요’에 포함</div>
+    </div>
+  </div>
+  <div class="pageno"></div>
+</section>
+
+<!-- 8. 추가 확인 필요: 정책/가이드 -->
+<section class="slide">
+  <div class="eyebrow">③ 추가 확인 필요 · 1 / 2</div>
+  <h1>아직 결정·확인이 필요한 사항</h1>
+  <p class="lead">정책 · 가이드 · 일정 관련 미결 항목</p>
+  <div class="body cols">
+    <div>
+      <div class="card"><h4><span class="tag t-todo">가이드</span>쇼룸 O + 모달 X 케이스</h4>
+        <p>쇼룸에서 플레이어 클릭 시 카페24 전용 라이브 URL(html 주소)로 이동하도록 <b>쇼룸 설치 html에 URL 브릿지 추가</b> 필요. 해당 케이스용 가이드 준비 필요</p></div>
+      <div class="card"><h4><span class="tag t-todo">정책</span>공유 URL 방송 고정 여부</h4>
+        <p>공유 시 방송 URL로 <b>필수</b> 이동시킬지, 고객사가 <b>optional</b>로 적용하게 할지 — 가이드 구성과 함께 결정</p></div>
+      <div class="card"><h4><span class="tag t-todo">가이드</span>Case 2(쇼룸 모달 X) 공개 범위</h4>
+        <p>현재 가이드엔 쇼룸 모달 방식만 공개. 요청 고객사에 케이스별로 전달하는 방향 확정 여부</p></div>
+    </div>
+    <div>
+      <div class="card"><h4><span class="tag t-todo">일정</span>쇼룸 상단 플레이어 모달 목표 일정</h4>
+        <p>최종 목적. 이게 되어야 쇼룸 모달 형태를 기본으로 밀 명분이 생김</p></div>
+      <div class="card"><h4><span class="tag t-todo">테스트</span>플로팅 미사용 고객사 설치 범위</h4>
+        <p>STEP 5·6을 빼고 쇼룸 스크립트만 설치했을 때 플로팅 미동작 + 로그인 정상 여부</p>
+        <div class="now"><b>현재 결과</b> · STEP 6까지 빼면 로그인 처리 안 됨 / STEP 5를 빼든 6을 빼든 <b>플로팅은 계속 뜸</b><br>→ 재용님 테스트 요청. vh에 민감한 고객사도 있어 사전 확인 필요</div></div>
+      <div class="card"><h4><span class="tag t-plan">추적</span>반영 예정 5건 적용 확인</h4>
+        <p>홈 플로팅 모달형 · Case 2 투명 모달 · 일시정지 정책 변경 · PC 1단 여백 삭제 · 접근성 테두리 수정</p></div>
+    </div>
+  </div>
+  <div class="pageno"></div>
+</section>
+
+<!-- 9. 추가 확인 필요: 오류 -->
+<section class="slide">
+  <div class="eyebrow">③ 추가 확인 필요 · 2 / 2</div>
+  <h1>오류 목록</h1>
+  <p class="lead">테스트 중 발견된 오류 — 수정 및 재현 확인 필요</p>
+  <div class="body cols">
+    <div>
+      <div class="col-title"><span class="tag t-bug">쇼룸 · 플로팅</span></div>
+      <div class="card"><h4>쇼룸 캘린더에서 방송 클릭 안 됨 <span class="tag t-plan">수정 중</span></h4></div>
+      <div class="card"><h4>홈 플로팅이 늦게 노출됨</h4><p>페이지 진입 후 플로팅이 뜨기까지 지연</p></div>
+      <div class="card"><h4>플로팅 클릭 시 위치 이상 <a class="peek peek-v" href="https://mobidoo-csm.github.io/guide/floating.mp4" target="_blank" rel="noopener">영상 보기<video src="https://mobidoo-csm.github.io/guide/floating.mp4" muted loop playsinline preload="metadata"></video></a></h4><p>클릭하면 플로팅이 화면 오른쪽 하단 구석으로 들어가는 현상</p></div>
+      <div class="card"><h4>STEP 5·6 미설치 시에도 플로팅 노출</h4><p>플로팅을 쓰지 않으려고 STEP 5 또는 6을 빼도 플로팅이 계속 뜸. STEP 6 제외 시 로그인 처리 안 됨</p></div>
+    </div>
+    <div>
+      <div class="col-title"><span class="tag t-bug">모바일 플레이어</span></div>
+      <div class="card"><h4>공통 (iOS · AOS) <a class="peek peek-v peek-m" href="https://mobidoo-csm.github.io/guide/cafe24aos.mp4" target="_blank" rel="noopener">영상 보기<video src="https://mobidoo-csm.github.io/guide/cafe24aos.mp4" muted loop playsinline preload="metadata"></video></a></h4>
+        <ul>
+          <li>플레이어가 움직이는(흔들리는) 느낌</li>
+          <li>상품 영역 높이 조절이 잘 안 됨</li>
+          <li>슬롯 배너가 고정되고 그 아래 영역만 스크롤됨</li>
+        </ul></div>
+      <div class="card"><h4>iOS <a class="peek peek-v peek-m" href="https://mobidoo-csm.github.io/guide/cafe24ios.mp4" target="_blank" rel="noopener">영상 보기<video src="https://mobidoo-csm.github.io/guide/cafe24ios.mp4" muted loop playsinline preload="metadata"></video></a></h4><p>플레이어 깜빡거림</p></div>
+      <div class="card"><h4>AOS <a class="peek peek-v peek-m" href="https://mobidoo-csm.github.io/guide/cafe24aos.mp4" target="_blank" rel="noopener">영상 보기<video src="https://mobidoo-csm.github.io/guide/cafe24aos.mp4" muted loop playsinline preload="metadata"></video></a></h4>
+        <ul>
+          <li>뒤에 깔린 쇼룸 영향으로 추정 — 플레이어에도 스크롤이 생김</li>
+          <li>갑자기 플레이어 하단에 쇼룸 화면이 나타남</li>
+        </ul></div>
+    </div>
+  </div>
+  <div class="pageno"></div>
+</section>
+
+</div></div>
+
+<nav id="nav">
+  <button id="prev" aria-label="이전">‹</button>
+  <div id="dots"></div>
+  <span id="count"></span>
+  <button id="next" aria-label="다음">›</button>
+</nav>
+
+<script>
+(function(){
+  var slides = document.querySelectorAll('.slide');
+  var deck = document.getElementById('deck');
+  var dots = document.getElementById('dots');
+  var n = slides.length, cur = 0;
+
+  slides.forEach(function(s, i){
+    var p = s.querySelector('.pageno'); if (p) p.textContent = (i + 1) + ' / ' + n;
+    var d = document.createElement('i'); d.onclick = function(){ go(i); }; dots.appendChild(d);
+  });
+
+  function go(i){
+    cur = Math.max(0, Math.min(n - 1, i));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === cur); });
+    dots.querySelectorAll('i').forEach(function(d, k){ d.classList.toggle('on', k === cur); });
+    document.getElementById('count').textContent = (cur + 1) + ' / ' + n;
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === n - 1;
+    history.replaceState(null, '', '#' + (cur + 1));
+  }
+
+  function fit(){
+    var vp = document.getElementById('viewport');
+    var s = Math.min((vp.clientWidth - 32) / 1280, (vp.clientHeight - 24) / 720);
+    deck.style.transform = 'scale(' + s + ')';
+  }
+
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.addEventListener('keydown', function(e){
+    if (['ArrowRight','PageDown',' '].indexOf(e.key) > -1){ e.preventDefault(); go(cur + 1); }
+    if (['ArrowLeft','PageUp'].indexOf(e.key) > -1){ e.preventDefault(); go(cur - 1); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(n - 1);
+  });
+  var sx = null;
+  document.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1));
+    sx = null;
+  });
+  window.addEventListener('resize', fit);
+  document.querySelectorAll('.peek-v').forEach(function(a){
+    var v = a.querySelector('video');
+    a.addEventListener('mouseenter', function(){ v.currentTime = 0; v.play().catch(function(){}); });
+    a.addEventListener('mouseleave', function(){ v.pause(); });
+  });
+
+  fit();
+  go((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>
